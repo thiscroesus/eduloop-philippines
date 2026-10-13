@@ -754,14 +754,21 @@ body { font-size: 16px; }
 .map-result-item > svg { color: var(--muted); flex-shrink: 0; }
 .map-no-results { margin: 0; padding: 14px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .map-attribution { margin: 0; padding: 8px 12px; border-top: 1px solid #edf0ed; background: #fafbf9; color: #78858d; font-size: 9px; line-height: 1.4; }
-.app-shell:has(.discovery-map-dock) .chat-dock, .app-shell:has(.discovery-map-dock) .floating-chat-launcher { right: 410px; }
+.app-shell:has(.discovery-map-dock) .chat-dock,
+.app-shell:has(.discovery-map-dock) .floating-chat-launcher,
+.app-shell:has(.discovery-map-mini) .chat-dock,
+.app-shell:has(.discovery-map-mini) .floating-chat-launcher { right: 410px; }
 @media (max-width: 820px) {
   .calendar-columns { grid-template-columns: 1fr; gap: 18px; }
   .schedule-calendar-card { padding: 17px; }
   .calendar-day { min-height: 39px; padding: 5px; }
   .calendar-month-controls strong { min-width: 105px; }
-  .app-shell:has(.discovery-map-dock) .chat-dock, .app-shell:has(.discovery-map-dock) .floating-chat-launcher { right: 12px; }
-  .app-shell:has(.discovery-map-dock) .chat-dock { bottom: 600px; max-height: min(440px, calc(100vh - 620px)); }
+  .app-shell:has(.discovery-map-dock) .chat-dock,
+  .app-shell:has(.discovery-map-dock) .floating-chat-launcher,
+  .app-shell:has(.discovery-map-mini) .chat-dock,
+  .app-shell:has(.discovery-map-mini) .floating-chat-launcher { right: 12px; }
+  .app-shell:has(.discovery-map-dock) .chat-dock,
+  .app-shell:has(.discovery-map-mini) .chat-dock { bottom: 230px; max-height: min(440px, calc(100vh - 250px)); }
 }
 @media (max-width: 520px) {
   .floating-chat-launcher, .floating-map-launcher { right: 12px; }
