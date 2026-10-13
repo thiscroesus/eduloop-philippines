@@ -393,7 +393,7 @@ export default function App() {
         <h3>{resource.title}</h3><p>{resource.shortDescription}</p>
         <div className="tag-row"><span className={`pill pill-${resource.cost === 'Free' ? 'green' : 'blue'}`}>{resource.cost}</span><span className="pill pill-light">{resource.region}</span></div>
         <div className="resource-owner-contact"><span className="avatar avatar-tiny">{initials(resource.createdByName)}</span><span>Posted by <strong>{resource.createdByName}</strong></span><span className="resource-contact-method"><MessageCircle size={12} /> {resource.contactMethod || 'EduLoop chat'}</span></div>
-        <button className="text-link" onClick={() => navigate(`/resources/${resource.id}`)}>View resource details <ArrowRight size={15} /></button>
+        <div className="resource-card-actions"><button className="text-link" onClick={() => navigate(`/resources/${resource.id}`)}>View resource details <ArrowRight size={15} /></button>{resource.isAnnouncedEvent && resource.eventDate && resource.eventStartTime && resource.eventEndTime && <button className="btn btn-soft btn-sm" disabled={Boolean(currentUser && calendarEntries.some((entry) => entry.userId === currentUser.id && entry.resourceId === resource.id))} onClick={() => addCalendarEntry(resource)}><CalendarDays size={14} /> {currentUser && calendarEntries.some((entry) => entry.userId === currentUser.id && entry.resourceId === resource.id) ? 'Added to calendar' : 'Add to calendar'}</button>}</div>
       </div>
     </article>
   );
@@ -406,7 +406,8 @@ export default function App() {
         <div className="listing-meta"><span><MapPin size={13} /> {material.city}</span><span className="meta-dot">·</span><span>{material.condition}</span></div>
         <h3>{material.title}</h3><p>{material.description}</p>
         <div className="tag-row"><span className={`pill ${material.availability === 'Available' ? 'pill-green' : material.availability === 'Reserved' ? 'pill-yellow' : 'pill-gray'}`}>{material.availability}</span><span className="pill pill-light">{material.category}</span></div>
-        <div className="card-foot"><span className="owner-mini"><span className="avatar avatar-tiny">{initials(material.ownerName)}</span> {own ? 'Your listing' : material.ownerName}</span><button className="text-link" onClick={() => navigate(`/materials/${material.id}`)}>View details <ArrowRight size={15} /></button></div>
+        <div className="material-contact-mini"><MessageCircle size={13} /><span>Contact via <strong>{material.contactMethod || 'EduLoop chat'}</strong></span></div>
+        <div className="card-foot"><span className="owner-mini"><span className="avatar avatar-tiny">{initials(material.ownerName)}</span> {own ? 'Your listing' : material.ownerName}</span><div className="material-card-actions">{!own && <button className="btn btn-outline btn-sm" onClick={() => requireUser(() => setChatTarget({ listingId: material.id, listingTitle: material.title, listingType: 'Material', recipientId: material.ownerId, recipientName: material.ownerName }))}><MessageCircle size={13} /> Message</button>}<button className="text-link" onClick={() => navigate(`/materials/${material.id}`)}>Details <ArrowRight size={15} /></button></div></div>
       </div>
     </article>;
   };
