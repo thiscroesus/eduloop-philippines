@@ -352,6 +352,7 @@ export function DiscoveryMap({
   const [mapReady, setMapReady] = useState(false);
   const mapElement = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
+  const markerLayer = useRef<any>(null);
 
   useEffect(() => { try { localStorage.setItem('eduloop-map-enabled', String(enabled)); localStorage.setItem('eduloop-map-place', place); if (center) localStorage.setItem('eduloop-map-center', JSON.stringify(center)); } catch { /* Storage optional in demo mode. */ } }, [enabled, place, center]);
 
@@ -393,6 +394,8 @@ export function DiscoveryMap({
     } finally { setIsSearching(false); }
   };
 
+  // Create the Leaflet map when the panel is expanded. Marker updates are handled separately
+  // so changing a filter does not destroy and recreate the map.
   useEffect(() => {
     if (!enabled || !expanded || !center || !mapElement.current) return;
     let cancelled = false;
@@ -405,28 +408,38 @@ export function DiscoveryMap({
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>',
       }).addTo(map);
-      const markers: any[] = [];
-      L.marker([center.lat, center.lon]).addTo(map).bindPopup('<strong>Your selected area</strong><br/>Map center only; no live GPS is used.');
-      nearby.forEach((item) => {
-        const popup = '<strong>' + escapeHtml(item.title) + '</strong><br/>' + escapeHtml(item.kind) + ' · Approximate city-level location<br/>' + Math.round(item.distance) + ' km from selected area';
-        markers.push(L.marker([item.point.lat, item.point.lon]).addTo(map).bindPopup(popup));
-      });
-      if (markers.length) {
-        const points = [[center.lat, center.lon], ...nearby.map((item) => [item.point.lat, item.point.lon])];
-        map.fitBounds(points, { padding: [22, 22], maxZoom: 12 });
-      }
+      markerLayer.current = L.layerGroup().addTo(map);
       setMapReady(true);
       window.setTimeout(() => map?.invalidateSize(), 100);
-    }).catch(() => setMapError('Map tiles could not load. Check your internet connection and try again.'));
+    }).catch(() => {
+      if (!cancelled) setMapError('Map tiles could not load. Check your internet connection and try again.');
+    });
     return () => {
       cancelled = true;
       if (map) map.remove();
       if (mapInstance.current === map) mapInstance.current = null;
+      markerLayer.current = null;
       setMapReady(false);
     };
-  }, [enabled, expanded, center, nearby]);
+  }, [enabled, expanded, center]);
 
-  if (!enabled) return <button className="floating-map-launcher" onClick={() => setEnabled(true)}><MapIcon size={19} /> Nearby map</button>;
+  // Refresh pins without rebuilding the map whenever filters or available listings change.
+  useEffect(() => {
+    const L = window.L;
+    const map = mapInstance.current;
+    const layer = markerLayer.current;
+    if (!mapReady || !L || !map || !layer || !center) return;
+    layer.clearLayers();
+    L.marker([center.lat, center.lon]).addTo(layer).bindPopup('<strong>Your selected area</strong><br/>Map center only; no live GPS is used.');
+    nearby.forEach((item) => {
+      const popup = '<strong>' + escapeHtml(item.title) + '</strong><br/>' + escapeHtml(item.kind) + ' · Approximate city-level location<br/>' + Math.round(item.distance) + ' km from selected area';
+      L.marker([item.point.lat, item.point.lon]).addTo(layer).bindPopup(popup);
+    });
+    const points = [[center.lat, center.lon], ...nearby.map((item) => [item.point.lat, item.point.lon])];
+    map.fitBounds(points, { padding: [22, 22], maxZoom: nearby.length ? 12 : 11 });
+  }, [mapReady, center, nearby]);
+
+  if (!enabled) return <button className="floating-map-launcher" onClick={() => { setEnabled(true); setExpanded(true); }}><MapIcon size={19} /> Nearby map</button>;
 
   return <>
     {!expanded && <section className="discovery-map-mini" aria-label="Nearby map minimized"><div className="mini-map-preview"><span className="mini-map-road mini-road-a" /><span className="mini-map-road mini-road-b" /><span className="mini-map-road mini-road-c" /><span className="mini-map-pin"><MapPin size={17} /></span><span className="mini-map-dot mini-dot-a" /><span className="mini-map-dot mini-dot-b" /><span className="mini-map-dot mini-dot-c" /></div><div className="discovery-map-mini-content"><strong><MapPinned size={15} /> Nearby map</strong><small>{center ? place : 'Choose an area to start'}</small><span>{center ? nearby.length + ' demo listings in range' : 'Map is switched on'}</span><div className="discovery-map-mini-actions"><button className="btn btn-primary btn-sm" onClick={() => setExpanded(true)}>Open map</button><button className="icon-button" onClick={() => setEnabled(false)} aria-label="Turn off map"><X size={15} /></button></div></div></section>}
