@@ -230,7 +230,8 @@ export function DashboardCalendar({
     result[item.date] = [...(result[item.date] || []), item];
     return result;
   }, {}), [entries]);
-  const todayKey = new Date().toLocaleDateString('en-CA');
+  const now = new Date();
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const upcoming = [...entries].filter((entry) => entry.date >= todayKey).sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
   const available = resources.filter((resource) => resource.isAnnouncedEvent && resource.eventDate && resource.eventStartTime && resource.eventEndTime && resource.eventDate >= todayKey && !entries.some((entry) => entry.resourceId === resource.id));
 
