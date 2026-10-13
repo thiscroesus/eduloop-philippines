@@ -41,7 +41,25 @@ export default function App() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as AppState;
-        if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.resources) && Array.isArray(parsed.materials)) return parsed;
+        if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.resources) && Array.isArray(parsed.materials)) {
+          // Upgrade saved browser demo data without discarding existing users, requests or listings.
+          // In particular, add new announced-event/contact fields to seed records from older versions.
+          const fresh = makeInitialState();
+          const eventSeeds = fresh.resources.filter((item) => item.isAnnouncedEvent && item.eventDate && item.eventStartTime && item.eventEndTime);
+          const migratedResources = parsed.resources.map((item) => {
+            const seed = eventSeeds.find((candidate) => candidate.id === item.id);
+            if (!seed || item.isAnnouncedEvent) return item;
+            return { ...item, isAnnouncedEvent: true, eventDate: seed.eventDate, eventStartTime: seed.eventStartTime, eventEndTime: seed.eventEndTime, contactMethod: item.contactMethod || seed.contactMethod };
+          });
+          return { ...fresh, ...parsed, resources: migratedResources,
+            requests: Array.isArray(parsed.requests) ? parsed.requests : fresh.requests,
+            notifications: Array.isArray(parsed.notifications) ? parsed.notifications : fresh.notifications,
+            reports: Array.isArray(parsed.reports) ? parsed.reports : fresh.reports,
+            activity: Array.isArray(parsed.activity) ? parsed.activity : fresh.activity,
+            savedItems: parsed.savedItems || {},
+            recentlyViewed: parsed.recentlyViewed || {},
+          };
+        }
       }
     } catch { /* Recover by loading fresh fictional demo data. */ }
     return makeInitialState();
@@ -100,8 +118,8 @@ export default function App() {
   const currentUser = app.users.find((user) => user.id === app.currentUserId) || null;
   const isAdmin = currentUser?.role === 'Administrator';
   const unreadCount = currentUser ? app.notifications.filter((n) => n.userId === currentUser.id && !n.read).length : 0;
-  const approvedResources = app.resources.filter((item) => item.status === 'Approved');
-  const approvedMaterials = app.materials.filter((item) => item.status === 'Approved');
+  const approvedResources = useMemo(() => app.resources.filter((item) => item.status === 'Approved'), [app.resources]);
+  const approvedMaterials = useMemo(() => app.materials.filter((item) => item.status === 'Approved'), [app.materials]);
 
   const updateApp = (change: (previous: AppState) => AppState) => setApp((previous) => change(previous));
   const navigate = (path: string) => {
