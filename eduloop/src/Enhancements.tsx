@@ -398,7 +398,7 @@ export function DiscoveryMap({
   // Create the Leaflet map when the panel is expanded. Marker updates are handled separately
   // so changing a filter does not destroy and recreate the map.
   useEffect(() => {
-    if (!enabled || !expanded || !center || !mapElement.current) return;
+    if (!enabled || !center || !mapElement.current) return;
     let cancelled = false;
     let map: any = null;
     loadLeaflet().then((L) => {
@@ -442,21 +442,23 @@ export function DiscoveryMap({
 
   if (!enabled) return <button className="floating-map-launcher" onClick={() => { setEnabled(true); setExpanded(true); }}><MapIcon size={19} /> Nearby map</button>;
 
-  return <>
-    {!expanded && <section className="discovery-map-mini" aria-label="Nearby map minimized"><div className="mini-map-preview"><span className="mini-map-road mini-road-a" /><span className="mini-map-road mini-road-b" /><span className="mini-map-road mini-road-c" /><span className="mini-map-pin"><MapPin size={17} /></span><span className="mini-map-dot mini-dot-a" /><span className="mini-map-dot mini-dot-b" /><span className="mini-map-dot mini-dot-c" /></div><div className="discovery-map-mini-content"><strong><MapPinned size={15} /> Nearby map</strong><small>{center ? place : 'Choose an area to start'}</small><span>{center ? nearby.length + ' demo listings in range' : 'Map is switched on'}</span><div className="discovery-map-mini-actions"><button className="btn btn-primary btn-sm" onClick={() => setExpanded(true)}>Open map</button><button className="icon-button" onClick={() => setEnabled(false)} aria-label="Turn off map"><X size={15} /></button></div></div></section>}
-    {expanded && <section className="discovery-map-dock" role="dialog" aria-label="Nearby learning resource map">
-      <header className="discovery-map-header"><span className="map-header-icon"><MapPinned size={18} /></span><div><strong>Nearby learning map</strong><small>Explore the area you choose</small></div><button className="map-mini-action" onClick={() => setExpanded(false)} aria-label="Minimize map"><Minimize2 size={16} /></button><button className="map-mini-action" onClick={() => setEnabled(false)} aria-label="Turn off map"><X size={17} /></button></header>
-      <form className="map-location-form" onSubmit={findPlace}><label htmlFor="eduloop-map-place">Enter a city or municipality</label><div><MapPin size={16} /><input id="eduloop-map-place" value={place} onChange={(event) => setPlace(event.target.value)} placeholder="e.g. Lapu-Lapu City, Cebu" /><button className="btn btn-primary btn-sm" type="submit" disabled={isSearching}>{isSearching ? 'Finding…' : 'Find'}</button></div></form>
-      <div className="map-filter-row">
-        <label><input type="checkbox" checked={showResources} onChange={(event) => setShowResources(event.target.checked)} /> Learning resources</label>
-        <label><input type="checkbox" checked={showMaterials} onChange={(event) => setShowMaterials(event.target.checked)} /> Materials</label>
-        <label className="map-radius-label">Radius<select value={radius} onChange={(event) => setRadius(event.target.value)}><option value="10">10 km</option><option value="25">25 km</option><option value="50">50 km</option><option value="100">100 km</option><option value="250">250 km</option></select></label>
-      </div>
-      {mapError && <p className="map-error" role="status">{mapError}</p>}
-      <div ref={mapElement} className="leaflet-map-canvas">{!center && <div className="map-placeholder"><MapIcon size={28} /><strong>Choose your area to begin</strong><span>Markers use approximate city-center locations for demo listings.</span></div>}</div>
-      <div className="map-results-heading"><strong>{nearby.length} nearby demo listing{nearby.length === 1 ? '' : 's'}</strong><small>{center ? 'Sorted by approximate city-center distance' : 'Search for an area to see results'}</small></div>
-      <div className="map-nearby-results">{nearby.slice(0, 12).map((item) => <button className="map-result-item" key={item.kind + item.id} onClick={() => item.kind === 'Resource' ? onOpenResource(item.id) : onOpenMaterial(item.id)}><span className={'map-result-icon ' + (item.kind === 'Resource' ? 'map-resource-icon' : 'map-material-icon')}>{item.kind === 'Resource' ? <BookOpen size={16} /> : <Package size={16} />}</span><span><strong>{item.title}</strong><small>{item.city} · about {Math.round(item.distance)} km</small></span><ExternalLink size={14} /></button>)}{center && nearby.length === 0 && <p className="map-no-results">No demo listings found within {radius} km. Try widening the radius or enabling both categories.</p>}</div>
-      <p className="map-attribution">Map © OpenStreetMap contributors. Pins represent approximate city-center locations, not exact pickup addresses. Entered location is sent to OpenStreetMap only when you search.</p>
-    </section>}
-  </>;
+  if (expanded) return <section className="discovery-map-dock" role="dialog" aria-label="Nearby learning resource map">
+    <header className="discovery-map-header"><span className="map-header-icon"><MapPinned size={18} /></span><div><strong>Nearby learning map</strong><small>Explore the area you choose</small></div><button className="map-mini-action" onClick={() => setExpanded(false)} aria-label="Minimize map"><Minimize2 size={16} /></button><button className="map-mini-action" onClick={() => setEnabled(false)} aria-label="Turn off map"><X size={17} /></button></header>
+    <form className="map-location-form" onSubmit={findPlace}><label htmlFor="eduloop-map-place">Enter a city or municipality</label><div><MapPin size={16} /><input id="eduloop-map-place" value={place} onChange={(event) => setPlace(event.target.value)} placeholder="e.g. Lapu-Lapu City, Cebu" /><button className="btn btn-primary btn-sm" type="submit" disabled={isSearching}>{isSearching ? 'Finding…' : 'Find'}</button></div></form>
+    <div className="map-filter-row">
+      <label><input type="checkbox" checked={showResources} onChange={(event) => setShowResources(event.target.checked)} /> Learning resources</label>
+      <label><input type="checkbox" checked={showMaterials} onChange={(event) => setShowMaterials(event.target.checked)} /> Materials</label>
+      <label className="map-radius-label">Radius<select value={radius} onChange={(event) => setRadius(event.target.value)}><option value="10">10 km</option><option value="25">25 km</option><option value="50">50 km</option><option value="100">100 km</option><option value="250">250 km</option></select></label>
+    </div>
+    {mapError && <p className="map-error" role="status">{mapError}</p>}
+    <div ref={mapElement} className="leaflet-map-canvas">{!center && <div className="map-placeholder"><MapIcon size={28} /><strong>Choose your area to begin</strong><span>Markers use approximate city-center locations for demo listings.</span></div>}</div>
+    <div className="map-results-heading"><strong>{nearby.length} nearby demo listing{nearby.length === 1 ? '' : 's'}</strong><small>{center ? 'Sorted by approximate city-center distance' : 'Search for an area to see results'}</small></div>
+    <div className="map-nearby-results">{nearby.slice(0, 12).map((item) => <button className="map-result-item" key={item.kind + item.id} onClick={() => item.kind === 'Resource' ? onOpenResource(item.id) : onOpenMaterial(item.id)}><span className={'map-result-icon ' + (item.kind === 'Resource' ? 'map-resource-icon' : 'map-material-icon')}>{item.kind === 'Resource' ? <BookOpen size={16} /> : <Package size={16} />}</span><span><strong>{item.title}</strong><small>{item.city} · about {Math.round(item.distance)} km</small></span><ExternalLink size={14} /></button>)}{center && nearby.length === 0 && <p className="map-no-results">No demo listings found within {radius} km. Try widening the radius or enabling both categories.</p>}</div>
+    <p className="map-attribution">Map © OpenStreetMap contributors. Pins represent approximate city-center locations, not exact pickup addresses. Entered location is sent to OpenStreetMap only when you search.</p>
+  </section>;
+
+  return <section className="discovery-map-mini" aria-label="Nearby map minimized">
+    <div ref={mapElement} className="leaflet-map-mini-canvas">{!center && <div className="map-placeholder map-placeholder-mini"><MapIcon size={22} /><strong>Choose area</strong><span>Open map to search</span></div>}</div>
+    <div className="discovery-map-mini-content"><strong><MapPinned size={15} /> Nearby map</strong><small>{center ? place : 'Choose an area to start'}</small><span>{center ? nearby.length + ' demo listings in range' : 'Map is switched on'}</span><small className="mini-map-attribution">© OpenStreetMap</small><div className="discovery-map-mini-actions"><button className="btn btn-primary btn-sm" onClick={() => setExpanded(true)}>Open map</button><button className="icon-button" onClick={() => setEnabled(false)} aria-label="Turn off map"><X size={15} /></button></div></div>
+  </section>;
 }
