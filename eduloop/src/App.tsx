@@ -6,9 +6,10 @@ import {
   Library, LogIn, LogOut, MapPin, Menu, Monitor, Package, Palette, PencilRuler, Plus,
   Search, Send, Settings2, ShieldCheck, Sparkles, Star, TrendingUp, User, UserPlus, Users,
   X, Calculator, NotebookPen, Usb, PenTool, Headphones, MessageSquareWarning, Trash2, ExternalLink,
-  CalendarDays, CircleDollarSign, School, Eye, EyeOff, Mail, LockKeyhole, UserRound, CircleCheck,
+  CalendarDays, CircleDollarSign, School, Eye, EyeOff, Mail, LockKeyhole, UserRound, CircleCheck, MessageCircle,
   type LucideIcon,
 } from 'lucide-react';
+import { ChatDock, DashboardCalendar, DiscoveryMap, type CalendarEntry, type ChatTarget } from './Enhancements';
 import {
   AppNotification, AppState, DEMO_ADMIN_CODE, Material, RequestRecord, RequestStatus,
   Resource, Role, STORAGE_KEY, makeInitialState, materialCategories, philippineRegions,
@@ -69,6 +70,14 @@ export default function App() {
   const [reportDetails, setReportDetails] = useState<{ title: string; type: 'Resource' | 'Material'; id: string } | null>(null);
   const [reportReason, setReportReason] = useState('Incorrect or misleading information');
   const [reportText, setReportText] = useState('');
+  const [chatTarget, setChatTarget] = useState<ChatTarget | null>(null);
+  const [calendarEntries, setCalendarEntries] = useState<CalendarEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem('eduloop-calendar-v1');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  });
 
   useEffect(() => {
     const syncRoute = () => setRoute(window.location.hash.replace(/^#/, '') || '/');
@@ -78,6 +87,9 @@ export default function App() {
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(app)); } catch { /* Browser storage may be disabled or full. */ }
   }, [app]);
+  useEffect(() => {
+    try { localStorage.setItem('eduloop-calendar-v1', JSON.stringify(calendarEntries)); } catch { /* Browser storage may be unavailable. */ }
+  }, [calendarEntries]);
   useEffect(() => { setMobileMenu(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }, [route]);
   useEffect(() => {
     if (!notice) return;
