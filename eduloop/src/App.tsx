@@ -329,6 +329,23 @@ export default function App() {
   const markAllRead = () => updateApp((previous) => ({ ...previous, notifications: previous.notifications.map((item) => item.userId === currentUser?.id ? { ...item, read: true } : item) }));
   const clearRead = () => updateApp((previous) => ({ ...previous, notifications: previous.notifications.filter((item) => item.userId !== currentUser?.id || !item.read) }));
 
+  const addCalendarEntry = (resource: Resource) => {
+    if (!currentUser) { setAuthMode('login'); setAuthError('Log in to add an announced event to your calendar.'); return; }
+    if (!resource.isAnnouncedEvent || !resource.eventDate || !resource.eventStartTime || !resource.eventEndTime) {
+      announce('Only announced events with a confirmed date and time can be added.', 'error'); return;
+    }
+    if (calendarEntries.some((entry) => entry.userId === currentUser.id && entry.resourceId === resource.id)) {
+      announce('This event is already in your calendar.', 'info'); return;
+    }
+    const entry: CalendarEntry = { id: makeId('cal'), userId: currentUser.id, resourceId: resource.id, title: resource.title, date: resource.eventDate, startTime: resource.eventStartTime, endTime: resource.eventEndTime, location: resource.city, provider: resource.organization };
+    setCalendarEntries((previous) => [...previous, entry]);
+    announce('Added to your dashboard calendar.');
+  };
+  const removeCalendarEntry = (entryId: string) => {
+    setCalendarEntries((previous) => previous.filter((entry) => entry.id !== entryId));
+    announce('Event removed from your calendar.', 'info');
+  };
+
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/resources', label: 'Learning resources', icon: BookOpen },
