@@ -392,6 +392,7 @@ export default function App() {
         <div className="listing-meta"><span><MapPin size={13} /> {resource.city}</span><span className="meta-dot">·</span><span>{resource.mode}</span></div>
         <h3>{resource.title}</h3><p>{resource.shortDescription}</p>
         <div className="tag-row"><span className={`pill pill-${resource.cost === 'Free' ? 'green' : 'blue'}`}>{resource.cost}</span><span className="pill pill-light">{resource.region}</span></div>
+        <div className="resource-owner-contact"><span className="avatar avatar-tiny">{initials(resource.createdByName)}</span><span>Posted by <strong>{resource.createdByName}</strong></span><span className="resource-contact-method"><MessageCircle size={12} /> {resource.contactMethod || 'EduLoop chat'}</span></div>
         <button className="text-link" onClick={() => navigate(`/resources/${resource.id}`)}>View resource details <ArrowRight size={15} /></button>
       </div>
     </article>
