@@ -810,3 +810,13 @@ body { font-size: 16px; }
   .material-card-actions { gap: 6px; }
   .material-card-actions .btn { padding: 0 9px; }
 }
+
+/* The minimized map uses a real Leaflet map, not a static illustration. */
+.leaflet-map-mini-canvas { width: 108px; min-width: 108px; height: 132px; min-height: 132px; overflow: hidden; position: relative; z-index: 1; background: #e8f0e6; }
+.map-placeholder-mini { padding: 6px; gap: 5px; }
+.map-placeholder-mini strong { font-size: 10px; }
+.map-placeholder-mini span { display: none; }
+.mini-map-attribution { margin-top: auto; font-size: 9px !important; color: #75858b !important; }
+@media (max-width: 520px) {
+  .leaflet-map-mini-canvas { width: 88px; min-width: 88px; height: 132px; min-height: 132px; }
+}
