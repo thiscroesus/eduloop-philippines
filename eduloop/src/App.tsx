@@ -220,7 +220,13 @@ export default function App() {
     const form = new FormData(event.currentTarget);
     const title = String(form.get('title') || '').trim();
     const description = String(form.get('description') || '').trim();
+    const isAnnouncedEvent = form.get('isAnnouncedEvent') === 'on';
+    const eventDate = String(form.get('eventDate') || '');
+    const eventStartTime = String(form.get('eventStartTime') || '');
+    const eventEndTime = String(form.get('eventEndTime') || '');
     if (title.length < 4 || description.length < 20) { announce('Add a clear title and a description of at least 20 characters.', 'error'); return; }
+    if (isAnnouncedEvent && (!eventDate || !eventStartTime || !eventEndTime)) { announce('For an announced event, enter its date, start time and end time.', 'error'); return; }
+    if (isAnnouncedEvent && eventEndTime <= eventStartTime) { announce('The event end time must be later than its start time.', 'error'); return; }
     const resource: Resource = {
       id: makeId('r'), title, category: String(form.get('category') || 'Online Materials'), region: String(form.get('region') || currentUser.region), city: String(form.get('city') || 'Not specified'), organization: String(form.get('organization') || currentUser.schoolOrOrganization),
       shortDescription: String(form.get('shortDescription') || description.slice(0, 120)), description,
@@ -228,6 +234,8 @@ export default function App() {
       subjects: String(form.get('subjects') || '').split(',').map((item) => item.trim()).filter(Boolean), audience: String(form.get('audience') || 'All learners').split(',').map((item) => item.trim()).filter(Boolean),
       accessSteps: String(form.get('accessSteps') || '').split('\n').map((item) => item.trim()).filter(Boolean), schedule: String(form.get('schedule') || 'Confirm with the provider before visiting.'),
       amenities: String(form.get('amenities') || '').split(',').map((item) => item.trim()).filter(Boolean), contactNotes: String(form.get('contactNotes') || 'Please verify access details with the provider.'), website: String(form.get('website') || '').trim(),
+      contactMethod: String(form.get('contactMethod') || 'EduLoop chat') as Resource['contactMethod'], contactInfo: String(form.get('contactInfo') || '').trim(),
+      isAnnouncedEvent, eventDate: isAnnouncedEvent ? eventDate : undefined, eventStartTime: isAnnouncedEvent ? eventStartTime : undefined, eventEndTime: isAnnouncedEvent ? eventEndTime : undefined,
       createdBy: currentUser.id, createdByName: currentUser.name, status: 'Pending Review', createdAt: new Date().toISOString(), icon: 'BookOpen', color: 'mint',
     };
     updateApp((previous) => ({ ...previous, resources: [resource, ...previous.resources], notifications: [...previous.notifications, addNotification('u-lea', 'Resource submitted for review', `${currentUser.name} submitted “${resource.title}” for approval.`)], activity: [logActivity(`${currentUser.name} submitted resource “${resource.title}” for review.`), ...previous.activity].slice(0, 40) }));
@@ -244,7 +252,7 @@ export default function App() {
     const material: Material = {
       id: makeId('m'), title, category: String(form.get('category') || 'School Supplies'), condition: String(form.get('condition') || 'Good') as Material['condition'], exchangeType: String(form.get('exchangeType') || 'Donate') as Material['exchangeType'],
       region: String(form.get('region') || currentUser.region), city: String(form.get('city') || 'Not specified'), description, includedItems: String(form.get('includedItems') || '').split(',').map((item) => item.trim()).filter(Boolean),
-      pickupNotes: String(form.get('pickupNotes') || 'Arrange a safe public handoff privately after approval.'), availability: 'Available', ownerId: currentUser.id, ownerName: currentUser.name, ownerRole: currentUser.role, status: 'Pending Review', createdAt: new Date().toISOString(), icon: 'Package', color: 'mint',
+      pickupNotes: String(form.get('pickupNotes') || 'Arrange a safe public handoff privately after approval.'), contactMethod: String(form.get('contactMethod') || 'EduLoop chat') as Material['contactMethod'], contactInfo: String(form.get('contactInfo') || '').trim(), availability: 'Available', ownerId: currentUser.id, ownerName: currentUser.name, ownerRole: currentUser.role, status: 'Pending Review', createdAt: new Date().toISOString(), icon: 'Package', color: 'mint',
     };
     updateApp((previous) => ({ ...previous, materials: [material, ...previous.materials], notifications: [...previous.notifications, addNotification('u-lea', 'Material listing submitted', `${currentUser.name} submitted “${material.title}” for review.`)], activity: [logActivity(`${currentUser.name} listed “${material.title}” for review.`), ...previous.activity].slice(0, 40) }));
     (event.target as HTMLFormElement).reset(); announce('Material listing submitted for review.'); navigate('/dashboard');
